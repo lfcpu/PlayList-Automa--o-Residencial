@@ -5,6 +5,7 @@ Sistema de controle remoto de relés utilizando ESP8266, Node.js e interface web
 
 ## Diagrama Resumido
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryTextColor': '#000'}}}%%
 sequenceDiagram
     participant U as Usuário
     participant W as Web
@@ -12,14 +13,14 @@ sequenceDiagram
     participant E as ESP8266
     participant R as Relés
 
-    rect rgb(240, 220, 220)
+    rect rgba(255, 220, 220, 0.5)
         U->>W: Controla relé
         W->>N: Envia comando
         N->>E: Repassa comando
         E->>R: Executa ação
     end
 
-    rect rgb(220, 220, 240)
+    rect rgba(220, 220, 255, 0.5)
         loop Monitoramento
             W->>E: Verifica status
             E-->>W: Retorna estado
@@ -29,6 +30,7 @@ sequenceDiagram
 
 ## Diagrama Detalhado do Sistema
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryTextColor': '#000'}}}%%
 sequenceDiagram
     participant U as Usuário
     participant W as Interface Web
@@ -37,38 +39,38 @@ sequenceDiagram
     participant R as Relés
 
     Note over U,R: Processo de Controle dos Relés
-    
-    rect rgb(200, 240, 200)
+
+    rect rgba(220, 255, 220, 0.5)
         Note over E: Inicialização do Sistema
-        E->>E: Conecta ao WiFi
-        E->>E: Inicia Servidor Web
-        E->>E: Configura Pinos dos Relés
+        E->>E: 1. Conecta ao WiFi
+        E->>E: 2. Inicia Servidor Web
+        E->>E: 3. Configura Pinos dos Relés
     end
 
-    rect rgb(240, 220, 220)
+    rect rgba(255, 220, 220, 0.5)
         Note over U,R: Ação de Controle
-        U->>W: 1. Clica no botão
+        U->>W: 1. Clica no botão na interface
         W->>W: 2. Executa controlRelay()
-        W->>N: 3. GET /control/relay/action
+        W->>N: 3. Envia comando ao servidor
         N->>N: 4. Processa requisição
-        N->>E: 5. GET /relay/action
+        N->>E: 5. Envia comando ao ESP8266
         E->>E: 6. Processa comando
         E->>R: 7. Ativa/Desativa relé
-        E-->>N: 8. Retorna status
-        N-->>W: 9. Confirma ação
+        E-->>N: 8. Confirma execução
+        N-->>W: 9. Retorna resposta
         W-->>U: 10. Atualiza interface
     end
 
-    rect rgb(220, 220, 240)
-        Note over U,R: Ciclo de Monitoramento
+    rect rgba(220, 220, 255, 0.5)
+        Note over U,R: Sistema de Monitoramento
         loop Cada 2 segundos
-            W->>N: Solicita status
-            N->>E: Consulta estado
+            W->>N: Requisita estado atual
+            N->>E: Consulta ESP8266
             E->>R: Verifica relés
-            R-->>E: Estado atual
-            E-->>N: Retorna estado
-            N-->>W: Atualiza status
-            W-->>U: Mostra estado atual
+            R-->>E: Retorna estado
+            E-->>N: Envia estado atual
+            N-->>W: Repassa informação
+            W-->>U: Atualiza display
         end
     end
 ```
@@ -76,44 +78,50 @@ sequenceDiagram
 ## Explicação do Fluxo
 
 ### 1. Inicialização (Verde):
-- ESP8266 inicia e conecta à rede WiFi
-- Configura os pinos dos relés
-- Inicia o servidor web interno
+- ESP8266 inicia e conecta à rede WiFi configurada
+- Configura pinos digitais para controle dos relés
+- Inicia servidor web interno para receber comandos
 
 ### 2. Controle dos Relés (Vermelho):
-1. Usuário clica no botão na interface web
-2. JavaScript executa função de controle
-3. Requisição enviada ao servidor Node.js
-4. Node.js processa e encaminha para ESP8266
-5. ESP8266 recebe e executa o comando
-6. Relé é ativado/desativado
-7. Confirmação retorna pela mesma rota
-8. Interface atualiza para mostrar novo estado
+1. Usuário interage com botão na interface web
+2. JavaScript processa a ação do usuário
+3. Envia comando HTTP para servidor Node.js
+4. Servidor Node.js valida e processa a requisição
+5. Comando é enviado ao ESP8266
+6. ESP8266 processa o comando recebido
+7. Sinal digital é enviado ao relé
+8. Confirmação retorna por toda a cadeia
+9. Interface atualiza para mostrar novo estado
 
 ### 3. Monitoramento Contínuo (Azul):
-- Interface web verifica status a cada 2 segundos
-- Requisição passa pelo Node.js até o ESP8266
-- ESP8266 retorna estado atual dos relés
-- Interface atualiza para mostrar estado real
+- Interface web mantém verificação periódica
+- Requisições de status a cada 2 segundos
+- ESP8266 verifica estado físico dos relés
+- Estado atual é enviado de volta
+- Interface atualiza informações em tempo real
 
 ## Componentes do Sistema
 
 ### Interface Web
-- HTML/JavaScript para controle
-- Botões para cada relé
-- Atualização automática de status
+- Frontend em HTML/JavaScript
+- Controles intuitivos para cada relé
+- Sistema de atualização automática
+- Feedback visual do estado dos relés
 
 ### Servidor Node.js
-- Intermediário entre interface e ESP8266
-- Processa requisições
-- Gerencia comunicação
+- API REST para controle
+- Gerenciamento de comunicação
+- Tratamento de erros
+- Validação de comandos
 
 ### ESP8266
-- Conectado aos relés físicos
+- Microcontrolador com WiFi
+- Controle direto dos relés
 - Servidor web embarcado
-- Executa comandos de controle
+- Processamento de comandos em tempo real
 
 ### Relés
-- Componentes físicos
-- Controlados por sinais do ESP8266
-- Estados: Ligado/Desligado
+- Componentes físicos de chaveamento
+- Controle via sinais digitais
+- Estados binários (Ligado/Desligado)
+- Feedback de estado atual
