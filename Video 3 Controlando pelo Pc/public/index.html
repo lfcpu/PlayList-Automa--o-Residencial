@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Relés</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .relay-control {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .on {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .off {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Controle de Relés</h1>
+    
+    <div class="relay-control">
+        <h2>Relé 1</h2>
+        <button onclick="controlRelay('relay1', 'on')" class="on">Ligar</button>
+        <button onclick="controlRelay('relay1', 'off')" class="off">Desligar</button>
+        <p id="relay1Status">Status: Verificando...</p>
+    </div>
+
+    <div class="relay-control">
+        <h2>Relé 2</h2>
+        <button onclick="controlRelay('relay2', 'on')" class="on">Ligar</button>
+        <button onclick="controlRelay('relay2', 'off')" class="off">Desligar</button>
+        <p id="relay2Status">Status: Verificando...</p>
+    </div>
+
+    <script>
+        async function controlRelay(relay, action) {
+            try {
+                await fetch(`/control/${relay}/${action}`);
+                updateStatus();
+            } catch (error) {
+                console.error('Erro ao controlar relé:', error);
+            }
+        }
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                document.getElementById('relay1Status').textContent = 
+                    `Status: ${data.relay1 ? 'Ligado' : 'Desligado'}`;
+                document.getElementById('relay2Status').textContent = 
+                    `Status: ${data.relay2 ? 'Ligado' : 'Desligado'}`;
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+
+        // Atualiza o status a cada 2 segundos
+        setInterval(updateStatus, 2000);
+        updateStatus(); // Primeira atualização
+    </script>
+</body>
+</html>
